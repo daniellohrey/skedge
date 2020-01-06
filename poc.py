@@ -99,13 +99,31 @@ def find_schedule(employees, cover):
 			model.Add(sum(work[e, d, s] for e in range(num_employees)) == cover[d][s])
 
 	#at least 1 employee available to start at 2 per afternoon shift
-	from_2_check = []
+	from_2_check = {}
 	for e in range(num_employees):
 		for d in range(num_days):
-				from_2_check.append(model.NewBoolVar('from_2_check%i' % (e)))
-				model.AddBoolAnd((work[e, d, 1], from_2[e])).OnlyEnforceIf(work[e, d, 1])
+			from_2_check[e, d] = model.NewBoolVar('from_2_check%i_%i' % (e, d))
+			#from_2_check will be true only when work and from_2 are true
+			#model.AddBoolOr([work[e, d, 1].Not(), from_2[e].Not(), from_2_check[e,d]])
+			model.Add(from_2_check[e, d] == 1).OnlyEnforceIf([work[e, d, 1], from_2[e]])
+			model.Add(from_2_check[e, d] == 0).OnlyEnforceIf(work[e, d, 1].Not())
+			model.Add(from_2_check[e, d] == 0).OnlyEnforceIf(from_2[e].Not())
+
+	for d in range(num_days):
+		model.Add(sum([from_2_check[e, d] for e in range(num_employees)]) >= 1)
 
 	#at least 2 employees available to finish at 6 per afternoon shift
+	till_6_check = {}
+	for e in range(num_employees):
+		for d in range(num_days):
+			till_6_check[e, d] = model.NewBoolVar('till_6_check%i_%i' % (e, d))
+			#model.AddBoolOr([work[e, d, 1].Not(), till_6[e].Not(), till_6_check[e,d]])
+			model.Add(till_6_check[e, d] == 1).OnlyEnforceIf([work[e, d, 1], till_6[e]])
+			model.Add(till_6_check[e, d] == 0).OnlyEnforceIf(work[e, d, 1].Not())
+			model.Add(till_6_check[e, d] == 0).OnlyEnforceIf(till_6[e].Not())
+
+	for d in range(num_days):
+		model.Add(sum([till_6_check[e, d] for e in range(num_employees)]) >= 2)
 
 	#weekly sum of shifts at least half of available shifts
 	for e in range(num_employees):
@@ -119,6 +137,22 @@ def find_schedule(employees, cover):
 	status = solver.Solve(model)
 
 	if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+#		for e in range(num_employees):
+#			schedule = ''
+#			schedule += employees[e].name + " " * (9 - len(employees[e].name))
+#			for d in range(num_days):
+#				for s in range(num_shifts):
+#					if solver.BooleanValue(work[e, d, s]):
+#						schedule += "1"
+#					else:
+#						schedule += "0"
+#			print(schedule)
+#			print("from_2: " + str(solver.BooleanValue(from_2[e])))
+#			print("till_6: " + str(solver.BooleanValue(till_6[e])))
+#			for d in range(num_days):
+#				print(str(d) + " from_2_check: " + str(solver.BooleanValue(from_2_check[e, d])))
+#				print(str(d) + " till_6_check: " + str(solver.BooleanValue(till_6_check[e, d])))
+#
 		print("Skedge")
 		print("         M T W T F")
 		for e in range(num_employees):
@@ -133,83 +167,83 @@ def find_schedule(employees, cover):
 			print(schedule)
 
 		print()
-		print("Availabilities")
-		for e in range(num_employees):
-			print(employees[e].name)
-			print(employees[e].not_available)
-
-		print()
-
-	print(solver.ResponseStats())
+#		print("Availabilities")
+#		for e in range(num_employees):
+#			print(employees[e].name)
+#			print(employees[e].not_available)
+#
+#		print()
+#
+#	print(solver.ResponseStats())
 
 def main():
 	employees = []
 	shifts = []
-	random.seed(1)
+	random.seed()
 
 	for i in range(5):
 		for j in range(2):
 			shifts.append((i, j))
 
-	e = Employee("Daniel")
+	e = Employee("Daniel", 1, 0)
 	e.set_availabilities(random.sample(shifts, 5))
 	employees.append(e)
 
-	e = Employee("Evelyn")
+	e = Employee("Evelyn", 0, 1)
 	e.set_availabilities(random.sample(shifts, 7))
 	employees.append(e)
 
-	e = Employee("Emily L")
+	e = Employee("Emily L", 0, 1)
 	e.set_availabilities(random.sample(shifts, 4))
 	employees.append(e)
 
-	e = Employee("Emily T")
+	e = Employee("Emily T", 0, 1)
 	e.set_availabilities(random.sample(shifts, 6))
 	employees.append(e)
 
-	e = Employee("Matt")
+	e = Employee("Matt", 1, 0)
 	e.set_availabilities(random.sample(shifts, 8))
 	employees.append(e)
 
-	e = Employee("Luke")
+	e = Employee("Luke", 1, 0)
 	e.set_availabilities(random.sample(shifts, 5))
 	employees.append(e)
 
-	e = Employee("Murray")
+	e = Employee("Murray", 0, 1)
 	e.set_availabilities(random.sample(shifts, 4))
 	employees.append(e)
 
-	e = Employee("Sam")
+	e = Employee("Sam", 0, 1)
 	e.set_availabilities(random.sample(shifts, 6))
 	employees.append(e)
 
-	e = Employee("Simon")
+	e = Employee("Simon", 1, 1)
 	e.set_availabilities(random.sample(shifts, 7))
 	employees.append(e)
 
-	e = Employee("Rio")
+	e = Employee("Rio", 0, 1)
 	e.set_availabilities(random.sample(shifts, 6))
 	employees.append(e)
 
-	e = Employee("Sophie L")
+	e = Employee("Sophie L", 1, 0)
 	e.set_availabilities(random.sample(shifts, 4))
 	employees.append(e)
 
-	e = Employee("Sophie A")
+	e = Employee("Sophie A", 1, 0)
 	e.set_availabilities(random.sample(shifts, 5))
 	employees.append(e)
 
-	e = Employee("Vanessa")
+	e = Employee("Vanessa", 0, 1)
 	e.set_availabilities(random.sample(shifts, 8))
 	employees.append(e)
 
-	e = Employee("Dale")
+	e = Employee("Dale", 1, 1)
 	e.set_availabilities(random.sample(shifts, 8))
 	employees.append(e)
 
 	cover = []
 	for i in range(5):
-		cover.append((4, 5))
+		cover.append((5, 6))
 
 	find_schedule(employees, cover)
 
