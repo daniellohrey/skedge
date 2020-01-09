@@ -1,4 +1,4 @@
-{% extends "base_generic.html" %}
+{% extends "skedge/base_generic.html" %}
 
 {% block content %}
 
@@ -31,7 +31,6 @@
     <input type="hidden" name="next" value="{{ next }}" />
   </form>
   
-  {# Assumes you setup the password_reset view in your URLconf #}
-  <p><a href="{% url 'password_reset' %}">Lost password?</a></p>
+  <p>Lost password? Contact Daniel</p>
   
 {% endblock %}
