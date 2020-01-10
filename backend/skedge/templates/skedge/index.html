@@ -1,0 +1,20 @@
+{% extends "skedge/base_generic.html" %}
+
+{% block content %}
+<p>Input Availabilities</p>
+{% for form in forms %}
+	<form action="/availability/" method="post">
+		{% csrf_token %}
+		{% include "skedge/form_snippet.html" %}
+		<input type="submit" value="Update">
+	</form>
+	<br/><br/>
+{% endfor %}
+<br/>
+<p>Add new employee</p>
+<form action="/employee/" method="post">
+	{% csrf_token %}
+	{{ eform }}
+	<input type="submit" value="Add">
+</form>
+{% endblock %}
