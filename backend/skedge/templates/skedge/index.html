@@ -17,4 +17,10 @@
 	{{ eform }}
 	<input type="submit" value="Add">
 </form>
+<br/>
+<br/>
+<form action="/generate/" method="post">
+	{% csrf_token %}
+	<input type="submit" value="Generate">
+</form>
 {% endblock %}

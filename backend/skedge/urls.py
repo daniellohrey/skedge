@@ -6,4 +6,6 @@ urlpatterns = [
 	path('', views.index, name='index'),
 	path('employee/', views.employee, name='employee'),
 	path('availability/', views.availability, name='availability'),
+	path('schedule/', views.schedule, name='schedule'),
+	path('generate/', views.generate_schedule, name='generate'),
 ]
