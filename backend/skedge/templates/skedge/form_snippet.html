@@ -5,13 +5,8 @@
 <br/>
 <table>
 <tr>
-{% for day in days %}
-	<th>{{ day }}</th>
-{% endfor %}
-</tr>
-<tr>
 {% for field in form.visible_fields|slice:"1:" %}
-	{% if forloop.counter0|divisibleby:5 %}
+	{% if forloop.counter0|divisibleby:4 %}
 		</tr>
 		<tr>
 	{% endif %}

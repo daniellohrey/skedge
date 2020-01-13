@@ -55,7 +55,9 @@ def schedule(request):
 	data['days'] = headers
 	return render(request, 'skedge/schedule.html', data)
 
+av = "B"
 def generate_schedule(request):
+	global av
 	if request.method == 'POST':
 		employees = []
 		for employee in Employee.objects.all():
@@ -63,7 +65,6 @@ def generate_schedule(request):
 		num_employees = len(employees)
 		num_days = 5
 		num_shifts = 2
-		av = 0
 		model = cp_model.CpModel()
 
 		#create morning/afternoon shift for each employee/day
@@ -80,7 +81,7 @@ def generate_schedule(request):
 				w = employees[e]
 				from_2[e, d] = model.NewBoolVar('from_2_%i_%i' % (e, d))
 				key = "a" + str(d) + "_1"
-				exec("av = w." + key)
+				exec("global av; av = w." + key)
 				if av == 'N':
 					#if not available set to not working
 					model.Add(from_2[e, d] == 0)
@@ -98,7 +99,7 @@ def generate_schedule(request):
 				w = employees[e]
 				till_6[e, d] = model.NewBoolVar('till_6_%i_%i' % (e, d))
 				key = "a" + str(d) + "_3"
-				exec("av = w." + key)
+				exec("global av; av = w." + key)
 				if av == 'N':
 					model.Add(till_6[e, d] == 0)
 				else:
@@ -109,10 +110,10 @@ def generate_schedule(request):
 		#set working/not available shifts
 		for e in range(num_employees):
 			for d in range(num_days):
-				for s, s2 in [(s, s2) for s in range(num_shifts) for s2 in [0, 2]]:
+				for s, s2 in [(0, 0), (1, 2)]:
 					w = employees[e]
 					key = "a" + str(d) + "_" + str(s2)
-					exec("av = w." + key)
+					exec("global av; av = w." + key)
 					if av == 'N':
 						model.Add(work[e, d, s] == 0)
 					elif av == 'W':
@@ -164,17 +165,21 @@ def generate_schedule(request):
 				w = employee_schedules[e]
 				for d in range(num_days):
 					#set whether working morning/afternoon
-					for s, s2 in [(s, s2) for s in range(num_shifts) for s2 in [0, 2]]:
+					for s, s2 in [(0, 0), (1, 2)]:
 						key = "w" + str(d) + "_" + str(s2)
 						av = solver.BooleanValue(work[e, d, s])
-						if av == 1:
+						if av:
 							exec("w." + key + " = 'W'")
 						else:
 							exec("w." + key + " = 'N'")
-				w.save()
 
 					#set whether working from 2/till 6
+					for s2 in [1, 3]:
+						key = "w" + str(d) + "_" + str(s2)
+						exec("w." + key + " = 'N'")
 
+				w.save()
 			return HttpResponseRedirect('/schedule/')
 
 	return HttpResponseRedirect('/')
+
