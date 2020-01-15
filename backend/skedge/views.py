@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from .forms import ScheduleForm, AvailabilityForm, EmployeeForm
-from .models import Employee, Availability, Schedule
+from .models import Employee, Availability, Schedule, Schedule_Parameters
 from ortools.sat.python import cp_model
 
 #@login_required
@@ -59,12 +59,30 @@ av = "B"
 def generate_schedule(request):
 	global av
 	if request.method == 'POST':
+		try:
+			p = Schedule_Parameters.objects.all()[0]
+			form = Schedule_ParamatersForm(request.POST, instance=s)
+		except IndexError:
+			form = Schedule_ParamatersForm(request.POST)
+		if form.is_valid():
+			form.save()
+		else:
+			return HttpResponseRedirect("/")
+
 		employees = []
 		for employee in Employee.objects.all():
 			employees.append(employee.availability)
+		params = Schedule_Paramaters.objects.all()[0]
 		num_employees = len(employees)
 		num_days = 5
 		num_shifts = 2
+
+		#penalties should be such that you rather have someone work more than ideal than be one person short for a shift
+		COVER_PENALTY = 5
+		WEEKLY_SUM_PENALTY = 2
+
+		int_vars = []
+		int_coeffs = []
 		model = cp_model.CpModel()
 
 		#create morning/afternoon shift for each employee/day
@@ -73,6 +91,8 @@ def generate_schedule(request):
 			for d in range(num_days):
 				for s in range(num_shifts):
 					work[e, d, s] = model.NewBoolVar('work%i_%i_%i' % (e, d, s))
+
+		#create dummy employee to find gaps
 
 		#set availabilites from 2-230
 		from_2 = {}
@@ -119,12 +139,21 @@ def generate_schedule(request):
 					elif av == 'W':
 						model.Add(work[e, d, s] == 1)
 
-		#add cover contraints - get values from model
+		#add cover contraints
 		for d in range(num_days):
-			for s in range(num_shifts):
-				model.Add(sum(work[e, d, s] for e in range(num_employees)) == 3)
+			for s, s2 in [(0, 0), (1, 2)]:
+				key = "p" + str(d) + "_" + str(s2)
+				exec("global av; av = params." + key)
+				working = model.NewIntVar(av - 1, av, "working%i_%i" % (d, s))
+				model.Add(sum(work[e, d, s] for e in range(num_employees)) == working)
+				ideal = model.NewIntVar(0, num_employees, "ideal%i_%i" % (d, s))
+				model.Add(ideal == av)
+				delta = model.NewIntVar(0, 1, "delta%i_%i" % (d, s))
+				model.AddAbsEquality(delta, ideal - working)
+				int_vars.append(delta)
+				int_coeffs.append(COVER_PENALTY)
 
-		#at least 1 employee available to start at 2
+		#add cover requirement from 2-230
 		from_2_check = {}
 		for e in range(num_employees):
 			for d in range(num_days):
@@ -134,9 +163,11 @@ def generate_schedule(request):
 				model.Add(from_2_check[e, d] == 0).OnlyEnforceIf(work[e, d, 1].Not())
 				model.Add(from_2_check[e, d] == 0).OnlyEnforceIf(from_2[e, d].Not())
 		for d in range(num_days):
-			model.Add(sum([from_2_check[e, d] for e in range(num_employees)]) >= 1)
+			key = "p" + str(d) + "_1"
+			exec("gloabl av; av = params." + key)
+			model.Add(sum([from_2_check[e, d] for e in range(num_employees)]) >= av)
 
-		#at least 1 employee available to finish at 6
+		#add cover requirement from 530-6
 		till_6_check = {}
 		for e in range(num_employees):
 			for d in range(num_days):
@@ -146,9 +177,21 @@ def generate_schedule(request):
 				model.Add(till_6_check[e, d] == 0).OnlyEnforceIf(work[e, d, 1].Not())
 				model.Add(till_6_check[e, d] == 0).OnlyEnforceIf(till_6[e, d].Not())
 		for d in range(num_days):
-			model.Add(sum([from_2_check[e, d] for e in range(num_employees)]) >= 1)
+			key = "p" + str(d) + "_3"
+			exec("gloabl av; av = params." + key)
+			model.Add(sum([from_2_check[e, d] for e in range(num_employees)]) >= av)
 
-		#add max/min number of shifts for each employee
+		#add ideal number of shifts for each employee
+		for e in range(num_employees):
+			w = employees[e]
+			weekly_sum = model.NewIntVar(0, 10, "weekly_sum%i" % (e))
+			model.Add(sum(work[e, d, s] for e in range(num_days) for s in num_shifts) == weekly_sum)
+			ideal = model.NewIntVar(0, 10, "weekly_ideal%i" % (e))
+			model.Add(ideal == w.weekly_ideal)
+			delta = model.NewIntVar(0, 10, "weekly_delta%i" % (e))
+			model.AddAbsEquality(delta, ideal - weekly_sum)
+			int_vars.append(delta)
+			int_coeffs.append(WEEKLY_SUM_PENALTY)
 
 		#solve model
 		solver = cp_model.CpSolver()
