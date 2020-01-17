@@ -21,6 +21,7 @@
 <br/>
 <form action="/generate/" method="post">
 	{% csrf_token %}
+	{{ param_form }}
 	<input type="submit" value="Generate">
 </form>
 {% endblock %}

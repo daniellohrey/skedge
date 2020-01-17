@@ -5,12 +5,26 @@
 <br/>
 <table>
 <tr>
-{% for field in form.visible_fields|slice:"1:" %}
-	{% if forloop.counter0|divisibleby:4 %}
-		</tr>
-		<tr>
-	{% endif %}
-	<td>{{ field }}</td>
-{% endfor %}
+{% if avail %}
+	{% for field in form.visible_fields|slice:"1:2" %}
+		{{ field }}
+	{% endfor %}
+	<br/>
+	{% for field in form.visible_fields|slice:"2:" %}
+		{% if forloop.counter0|divisibleby:4 %}
+			</tr>
+			<tr>
+		{% endif %}
+		<td>{{ field }}</td>
+	{% endfor %}
+{% else %}
+	{% for field in form.visible_fields|slice:"1:" %}
+		{% if forloop.counter0|divisibleby:4 %}
+			</tr>
+			<tr>
+		{% endif %}
+		<td>{{ field }}</td>
+	{% endfor %}
+{% endif %}
 </tr>
 </table>

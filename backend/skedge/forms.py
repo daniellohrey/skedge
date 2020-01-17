@@ -1,5 +1,5 @@
 from django.forms import ModelForm
-from .models import Employee, Schedule, Availability
+from .models import Employee, Schedule, Availability, Schedule_Parameters
 
 class ScheduleForm(ModelForm):
 	class Meta:
@@ -14,4 +14,9 @@ class AvailabilityForm(ModelForm):
 class EmployeeForm(ModelForm):
 	class Meta:
 		model = Employee
+		fields = '__all__'
+
+class Schedule_ParametersForm(ModelForm):
+	class Meta:
+		model = Schedule_Parameters
 		fields = '__all__'

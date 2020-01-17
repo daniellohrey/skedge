@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from .forms import ScheduleForm, AvailabilityForm, EmployeeForm
+from .forms import ScheduleForm, AvailabilityForm, EmployeeForm, Schedule_ParametersForm
 from .models import Employee, Availability, Schedule, Schedule_Parameters
 from ortools.sat.python import cp_model
 
@@ -17,6 +17,13 @@ def index(request):
 	data['days'] = headers
 	new_employee = EmployeeForm()
 	data['eform'] = new_employee
+	try:
+		p = Schedule_Parameters.objects.all()[0]
+		form = Schedule_ParametersForm(instance=p)
+	except IndexError:
+		form = Schedule_ParametersForm()
+	data['param_form'] = form
+	data['avail'] = True
 	return render(request, 'skedge/index.html', data)
 
 def employee(request):
@@ -61,9 +68,9 @@ def generate_schedule(request):
 	if request.method == 'POST':
 		try:
 			p = Schedule_Parameters.objects.all()[0]
-			form = Schedule_ParamatersForm(request.POST, instance=s)
+			form = Schedule_ParametersForm(request.POST, instance=p)
 		except IndexError:
-			form = Schedule_ParamatersForm(request.POST)
+			form = Schedule_ParametersForm(request.POST)
 		if form.is_valid():
 			form.save()
 		else:
@@ -72,14 +79,14 @@ def generate_schedule(request):
 		employees = []
 		for employee in Employee.objects.all():
 			employees.append(employee.availability)
-		params = Schedule_Paramaters.objects.all()[0]
+		params = Schedule_Parameters.objects.all()[0]
 		num_employees = len(employees)
 		num_days = 5
 		num_shifts = 2
 
 		#penalties should be such that you rather have someone work more than ideal than be one person short for a shift
-		COVER_PENALTY = 5
-		WEEKLY_SUM_PENALTY = 2
+		COVER_PENALTY = 10
+		WEEKLY_SUM_PENALTY = 1
 
 		int_vars = []
 		int_coeffs = []
@@ -148,9 +155,11 @@ def generate_schedule(request):
 				model.Add(sum(work[e, d, s] for e in range(num_employees)) == working)
 				ideal = model.NewIntVar(0, num_employees, "ideal%i_%i" % (d, s))
 				model.Add(ideal == av)
-				delta = model.NewIntVar(0, 1, "delta%i_%i" % (d, s))
-				model.AddAbsEquality(delta, ideal - working)
-				int_vars.append(delta)
+				delta = model.NewIntVar(-1, 1, "delta%i_%i" % (d, s))
+				model.Add(delta == ideal - working)
+				delta_penalty = model.NewIntVar(0, 1, 'cover%i_%i' % (d, s))
+				model.AddAbsEquality(delta_penalty, delta)
+				int_vars.append(delta_penalty)
 				int_coeffs.append(COVER_PENALTY)
 
 		#add cover requirement from 2-230
@@ -164,7 +173,7 @@ def generate_schedule(request):
 				model.Add(from_2_check[e, d] == 0).OnlyEnforceIf(from_2[e, d].Not())
 		for d in range(num_days):
 			key = "p" + str(d) + "_1"
-			exec("gloabl av; av = params." + key)
+			exec("global av; av = params." + key)
 			model.Add(sum([from_2_check[e, d] for e in range(num_employees)]) >= av)
 
 		#add cover requirement from 530-6
@@ -178,24 +187,31 @@ def generate_schedule(request):
 				model.Add(till_6_check[e, d] == 0).OnlyEnforceIf(till_6[e, d].Not())
 		for d in range(num_days):
 			key = "p" + str(d) + "_3"
-			exec("gloabl av; av = params." + key)
+			exec("global av; av = params." + key)
 			model.Add(sum([from_2_check[e, d] for e in range(num_employees)]) >= av)
 
 		#add ideal number of shifts for each employee
 		for e in range(num_employees):
 			w = employees[e]
 			weekly_sum = model.NewIntVar(0, 10, "weekly_sum%i" % (e))
-			model.Add(sum(work[e, d, s] for e in range(num_days) for s in num_shifts) == weekly_sum)
+			model.Add(sum(work[e, d, s] for d in range(num_days) for s in range(num_shifts)) == weekly_sum)
 			ideal = model.NewIntVar(0, 10, "weekly_ideal%i" % (e))
 			model.Add(ideal == w.weekly_ideal)
-			delta = model.NewIntVar(0, 10, "weekly_delta%i" % (e))
-			model.AddAbsEquality(delta, ideal - weekly_sum)
-			int_vars.append(delta)
+			delta = model.NewIntVar(-10, 10, "weekly_delta%i" % (e))
+			model.Add(delta == ideal - weekly_sum)
+			delta_penalty = model.NewIntVar(0, 10, 'weekly%i' % (e))
+			model.AddAbsEquality(delta_penalty, delta)
+			int_vars.append(delta_penalty)
 			int_coeffs.append(WEEKLY_SUM_PENALTY)
+
+		#set objective
+		model.Minimize(sum(int_vars[i] * int_coeffs[i] for i in range(len(int_vars))))
 
 		#solve model
 		solver = cp_model.CpSolver()
 		solver.parameters.num_search_workers = 8 #adjust for production server
+		#printer = cp_model.ObjectiveSolutionPrinter()
+		#status = solver.SolveWithSolutionCallback(model, printer)
 		status = solver.Solve(model)
 
 		if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
@@ -220,8 +236,10 @@ def generate_schedule(request):
 					for s2 in [1, 3]:
 						key = "w" + str(d) + "_" + str(s2)
 						exec("w." + key + " = 'N'")
+					#add actual 2-6 schedule
 
 				w.save()
+
 			return HttpResponseRedirect('/schedule/')
 
 	return HttpResponseRedirect('/')
