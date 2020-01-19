@@ -1,7 +1,32 @@
 {% extends "skedge/base_generic.html" %}
 
+{% block script %}
+<script>
+        $(document).on('click', '.available', function () {
+                $(this).removeClass().addClass('not-available').text('Not available');
+                $(this).next().val("N")
+        });
+
+        $(document).on('click', '.not-available', function () {
+                $(this).removeClass().addClass('available').text('Available');
+                $(this).next().val("A")
+        });
+</script>
+{% endblock %}
+
 {% block content %}
+{% include "skedge/header.html" %}
 <p>Schedule</p>
+<table class="table">
+        <tr>
+                <th>Employee</th>
+                <th>Shift</th>
+                <th>Monday</th>
+                <th>Tuesday</th>
+                <th>Wednesday</th>
+                <th>Thursday</th>
+                <th>Friday</th>
+	</tr>
 {% for form in forms %}
         <form action="/schedule/" method="post">
                 {% csrf_token %}
@@ -11,4 +36,5 @@
         <br/><br/>
 {% endfor %}
 <br/>
+</table>
 {% endblock %}

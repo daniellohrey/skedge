@@ -1,30 +1,27 @@
-{% for field in form.visible_fields|slice:":1" %}
-	{{ field.label_tag }} {{ field }}
-{% endfor %}
-<br/>
-<br/>
-<table>
 <tr>
-{% if avail %}
-	{% for field in form.visible_fields|slice:"1:2" %}
-		{{ field }}
-	{% endfor %}
-	<br/>
-	{% for field in form.visible_fields|slice:"2:" %}
-		{% if forloop.counter0|divisibleby:4 %}
-			</tr>
-			<tr>
-		{% endif %}
-		<td>{{ field }}</td>
-	{% endfor %}
-{% else %}
-	{% for field in form.visible_fields|slice:"1:" %}
-		{% if forloop.counter0|divisibleby:4 %}
-			</tr>
-			<tr>
-		{% endif %}
-		<td>{{ field }}</td>
-	{% endfor %}
-{% endif %}
+{% for field in form.hidden_fields %}
+	{{ form.employee }}
+	{% cycle %}
+	{% if forloop.counter == 1 %}
+		<td>{{ name }}</td><td>Morning</td>
+	{% elif forloop.counter == 6 %}
+		<td></td><td>2:00 - 2:30</td>
+	{% elif forloop.counter == 11 %}
+		<td></td><td>Afternoon</td>
+	{% elif forloop.counter == 16 %}
+		<td></td><td>5:30 - 6:00</td>
+	{% endif %}
+	{% if field.value == "A" %}
+		<td class="available">Available</td>
+	{% elif field.value == "N" %}
+		<td class="not-available">Not Available</td>
+	{% elif field.value == "W" %}
+		<td class="working">Working</td>
+	{% endif %}
+	{{ field }}
+	{% if forloop.counter|divisibleby:"5" and forloop.counter != 20 %}
+		</tr>
+		<tr>
+	{% endif %}
+{% endfor %}
 </tr>
-</table>

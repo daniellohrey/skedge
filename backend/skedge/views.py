@@ -5,7 +5,7 @@ from .forms import ScheduleForm, AvailabilityForm, EmployeeForm, Schedule_Parame
 from .models import Employee, Availability, Schedule, Schedule_Parameters
 from ortools.sat.python import cp_model
 
-#@login_required
+@login_required
 def index(request):
 	data = {}
 	employee_forms = []
