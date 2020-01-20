@@ -16,10 +16,15 @@ class ScheduleForm(ModelForm):
 				exec("fields.append('" + key + "')")
 
 class AvailabilityForm(ModelForm):
+	choices = [
+                ('N', 'Not Available'),
+                ('A', 'Available'),
+                ('W', 'Working')
+        ]
 	for s in range(4):
 		for d in range(5):
 			key = "a" + str(d) + "_" + str(s)
-			exec(key + " = ChoiceField(widget=HiddenInput)")
+			exec(key + " = ChoiceField(widget=HiddenInput, choices=choices)")
 
 	class Meta:
 		model = Availability

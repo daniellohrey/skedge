@@ -16,6 +16,10 @@
                 $(this).removeClass().addClass('available').text('Available');
                 $(this).next().val("A")
         });
+
+	$(document).ready(function() {
+		$('.ajax-form').ajaxForm();
+	});
 </script>
 {% endblock %}
 
@@ -31,8 +35,8 @@
 		<th>Thursday</th>
 		<th>Friday</th>
 	</tr>
-{% for name, form in forms %}
-	<form action="/availability/" method="post">
+{% for employee, form in forms %}
+	<form class="ajax-form" action="/availability/" method="post">
 		{% csrf_token %}
 		{% include "skedge/form_snippet.html" %}
 	</form>

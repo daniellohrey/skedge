@@ -1,11 +1,9 @@
 <tr>
 {% for field in form.hidden_fields %}
-	{{ form.employee }}
-	{% cycle %}
 	{% if forloop.counter == 1 %}
-		<td>{{ name }}</td><td>Morning</td>
+		<td>{{ employee.name }} {{ form.employee.as_hidden }}</td><td>Morning</td>
 	{% elif forloop.counter == 6 %}
-		<td></td><td>2:00 - 2:30</td>
+		<td><input type="submit" value="Save"></td><td>2:00 - 2:30</td>
 	{% elif forloop.counter == 11 %}
 		<td></td><td>Afternoon</td>
 	{% elif forloop.counter == 16 %}

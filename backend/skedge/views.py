@@ -11,7 +11,7 @@ def index(request):
 	employee_forms = []
 	for employee in Employee.objects.all():
 		form = AvailabilityForm(instance=employee.availability)
-		employee_forms.append(form)
+		employee_forms.append((employee, form))
 	data['forms'] = employee_forms
 	headers = ["Shift", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 	data['days'] = headers
@@ -43,7 +43,7 @@ def availability(request):
 		form = AvailabilityForm(request.POST, instance=a)
 		if form.is_valid():
 			form.save()
-	return HttpResponseRedirect('/')
+	return HttpResponse('OK', status=200)
 
 def schedule(request):
 	if request.method == 'POST':
