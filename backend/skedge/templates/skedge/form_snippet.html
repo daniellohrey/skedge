@@ -1,25 +1,29 @@
 <tr>
 {% for field in form.hidden_fields %}
 	{% if forloop.counter == 1 %}
-		<td>{{ employee.name }} {{ form.employee.as_hidden }}</td><td>Morning</td>
+		<td height=38 class="border border-dark">&nbsp;&nbsp;{{ employee.name }} {{ form.employee.as_hidden }}</td><td class="border border-dark">&nbsp;&nbsp;Morning</td>
 	{% elif forloop.counter == 6 %}
-		<td><input type="submit" value="Save"></td><td>2:00 - 2:30</td>
+		<td height=38 class="border border-dark">{{ form.weekly_ideal }}</td><td class="border border-dark">&nbsp;&nbsp;2:00 - 2:30</td>
 	{% elif forloop.counter == 11 %}
-		<td></td><td>Afternoon</td>
+		<td height=38 class="border border-dark"></td><td class="border border-dark">&nbsp;&nbsp;Afternoon</td>
 	{% elif forloop.counter == 16 %}
-		<td></td><td>5:30 - 6:00</td>
+		<td height=38 class="border border-dark"><input class="btn btn-block btn-sm btn-success" type="submit" value="Save"></td><td class="border border-dark">&nbsp;&nbsp;5:30 - 6:00</td>
 	{% endif %}
 	{% if field.value == "A" %}
-		<td class="available">Available</td>
+		<td class="bg-success border border-dark">Available</td>
 	{% elif field.value == "N" %}
-		<td class="not-available">Not Available</td>
+		<td class="bg-danger border border-dark">Not Available</td>
 	{% elif field.value == "W" %}
-		<td class="working">Working</td>
+		<td class="bg-warning border border-dark">Working</td>
 	{% endif %}
 	{{ field }}
 	{% if forloop.counter|divisibleby:"5" and forloop.counter != 20 %}
 		</tr>
-		<tr>
+		{% if forloop.counter == 15 %}
+			<tr class="sep">
+		{% else %}
+			<tr>
+		{% endif %}
 	{% endif %}
 {% endfor %}
 </tr>

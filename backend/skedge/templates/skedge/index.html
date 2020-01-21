@@ -2,18 +2,18 @@
 
 {% block script %}
 <script>
-        $(document).on('click', '.available', function () {
-                $(this).removeClass().addClass('not-available').text('Not available');
+        $(document).on('click', '.bg-success', function () {
+                $(this).removeClass().addClass('bg-danger').text('Not available');
                 $(this).next().val("N")
         });
 
-        $(document).on('click', '.not-available', function () {
-                $(this).removeClass().addClass('working').text('Working');
+        $(document).on('click', '.bg-danger', function () {
+                $(this).removeClass().addClass('bg-warning').text('Working');
                 $(this).next().val("W")
         });
 
-        $(document).on('click', '.working', function () {
-                $(this).removeClass().addClass('available').text('Available');
+        $(document).on('click', '.bg-warning', function () {
+                $(this).removeClass().addClass('bg-success').text('Available');
                 $(this).next().val("A")
         });
 
@@ -25,34 +25,83 @@
 
 {% block content %}
 {% include "skedge/header.html" %}
-<table class="table">
+<h4 class="hh">Enter Employee Availability</h5>
+<table class="table table-primary table-striped table-bordered table-hover table-sm">
+<thead>
 	<tr>
-		<th>Employee</th>
-		<th>Shift</th>
-		<th>Monday</th>
-		<th>Tuesday</th>
-		<th>Wednesday</th>
-		<th>Thursday</th>
-		<th>Friday</th>
+		<th height=30 class="border border-dark">&nbsp;&nbsp;Employee</th>
+		<th class="border border-dark">&nbsp;&nbsp;Shift</th>
+		<th class="border border-dark">&nbsp;&nbsp;Monday</th>
+		<th class="border border-dark">&nbsp;&nbsp;Tuesday</th>
+		<th class="border border-dark">&nbsp;&nbsp;Wednesday</th>
+		<th class="border border-dark">&nbsp;&nbsp;Thursday</th>
+		<th class="border border-dark">&nbsp;&nbsp;Friday</th>
 	</tr>
+</thead>
+</tbody>
 {% for employee, form in forms %}
 	<form class="ajax-form" action="/availability/" method="post">
 		{% csrf_token %}
 		{% include "skedge/form_snippet.html" %}
 	</form>
-	<br/>
 {% endfor %}
+</tbody>
 </table>
-<p>Add new employee</p>
+<div>
+<h5 class="ml">Add new employee</h5>
 <form action="/employee/" method="post">
 	{% csrf_token %}
-	{{ eform }}
-	<input type="submit" value="Add">
+	<label class="ml" for="{{ eform.name.id_for_label }}">Name:&nbsp;</label>
+	{{ eform.name }}
+	<input class="ll" type="submit" value="Add">
 </form>
-<br/>
-<form action="/generate/" method="post">
+</div>
+<div>
+<h5 class="ml">Delete Employee</h5>
+<form action="/employee/delete/" method="post">
 	{% csrf_token %}
-	{{ param_form }}
-	<input type="submit" value="Generate">
+	<label class="ml" for="{{ dform.employee.id_for_label }}">Employee:&nbsp;</label>
+	{{ dform.employee }}
+	<input class="ll" type="submit" value="Delete">
 </form>
+</div>
+<h4 class="ml">Enter required cover</h4>
+<form action="/generate/" method="post">
+{% csrf_token %}
+<table class="table ll table-primary table-bordered table-hover table-striped table-sm">
+<thead>
+	<tr>
+		<th height=30 class="border border-dark">Shift</th>
+		<th class="border border-dark">Monday</th>
+		<th class="border border-dark">Tuesday</th>
+		<th class="border border-dark">Wednesday</th>
+		<th class="border border-dark">Thursday</th>
+		<th class="border border-dark">Friday</th>
+	</tr>
+</thead>
+</tbody>
+	{% for field in param_form %}
+		{% if forloop.counter == 1 %}
+			<td class="border border-dark">Morning</td>
+		{% elif forloop.counter == 6 %}
+			<td class="border border-dark">2:00 - 2:30</td>
+		{% elif forloop.counter == 11 %}
+			<td class="border border-dark">Afternoon</td>
+		{% elif forloop.counter == 16 %}
+			<td class="border border-dark">5:30 - 6:00</td>
+		{% endif %}
+		<td class="border border-dark">{{ field }}</td>
+		{% if forloop.counter|divisibleby:"5" %}
+			</tr>
+			{% if forloop.counter != 20 %}
+				<tr>
+			{% endif %}
+		{% endif %}
+	{% endfor %}
+</tbody>
+</table>
+<input style="position:absolute; right:50px;"  type="submit" value="Generate">
+</form>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
 {% endblock %}

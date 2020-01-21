@@ -2,25 +2,76 @@ td {
   cursor: pointer;
 }
 
-.available {
-  background: #28a745;
+input[type=number]{
+  width: 70px;
+  margin-left: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  padding: 7px;
+  outline: 1px solid black;
+}
+
+.bg-success {
   color: white;
 }
 
-.not-available {
-  background: #dc3545;
+.bg-warning {
   color: white;
 }
 
-.working {
-  background: #ffc107;
+.bg-danger {
   color: white;
 }
 
-.table {
-  margin-top: 20px;
+.bg-success {
+  text-align: center;
+  opacity: 0.89;
+}
+
+.bg-success:hover {
+  opacity: 0.99;
+}
+
+.bg-danger {
+  text-align: center;
+  opacity: 0.89;
+}
+
+.bg-danger:hover {
+  opacity: 0.99;
+}
+
+.bg-warning {
+  text-align: center;
+  opacity: 0.85;
+}
+
+.bg-warning:hover {
+  opacity: 0.99;
+}
+
+.hh {
+  margin-top: 15px;
+  margin-left: 10px;
+}
+
+.ll {
+  margin-left: 5px;
+}
+
+.ml {
+  margin-left: 15px;
 }
 
 .new-person {
   border-top: 2px solid white;
+}
+
+.right {
+  position: absolute;
+  right: 20px;
+}
+
+.sep {
+  border-bottom: 3px solid black;
 }

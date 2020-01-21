@@ -8,7 +8,7 @@ class Employee(models.Model):
 
 class Availability(models.Model):
 	employee = models.OneToOneField(Employee, on_delete=models.CASCADE)
-	weekly_ideal = models.IntegerField()
+	weekly_ideal = models.IntegerField(default=0)
 	choices = [
 		('N', 'Not Available'),
 		('A', 'Available'),

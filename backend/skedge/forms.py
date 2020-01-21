@@ -1,4 +1,4 @@
-from django.forms import ModelForm, HiddenInput, ChoiceField
+from django.forms import ModelForm, Form, HiddenInput, ChoiceField, ModelChoiceField
 from .models import Employee, Schedule, Availability, Schedule_Parameters
 
 class ScheduleForm(ModelForm):
@@ -28,7 +28,7 @@ class AvailabilityForm(ModelForm):
 
 	class Meta:
 		model = Availability
-		fields = ['employee']
+		fields = ['employee', 'weekly_ideal']
 		for s in range(4):
 			for d in range(5):
 				key = "a" + str(d) + "_" + str(s)
@@ -37,9 +37,16 @@ class AvailabilityForm(ModelForm):
 class EmployeeForm(ModelForm):
 	class Meta:
 		model = Employee
-		fields = '__all__'
+		fields = ['name']
 
 class Schedule_ParametersForm(ModelForm):
 	class Meta:
 		model = Schedule_Parameters
-		fields = '__all__'
+		fields = []
+		for s in range(4):
+			for d in range(5):
+				key = "p" + str(d) + "_" + str(s)
+				exec("fields.append('" + key + "')")
+
+class DeleteEmployeeForm(Form):
+	employee = ModelChoiceField(queryset=Employee.objects.all())

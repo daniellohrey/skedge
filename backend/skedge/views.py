@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from .forms import ScheduleForm, AvailabilityForm, EmployeeForm, Schedule_ParametersForm
+from .forms import ScheduleForm, AvailabilityForm, EmployeeForm, Schedule_ParametersForm, DeleteEmployeeForm
 from .models import Employee, Availability, Schedule, Schedule_Parameters
 from ortools.sat.python import cp_model
 
@@ -24,6 +24,7 @@ def index(request):
 		form = Schedule_ParametersForm()
 	data['param_form'] = form
 	data['avail'] = True
+	data['dform'] = DeleteEmployeeForm()
 	return render(request, 'skedge/index.html', data)
 
 def employee(request):
@@ -35,6 +36,13 @@ def employee(request):
 			a.save()
 			s = Schedule(employee=e)
 			s.save()
+	return HttpResponseRedirect('/')
+
+def delete_employee(request):
+	if request.method == 'POST':
+		form = DeleteEmployeeForm(request.POST)
+		if form.is_valid():
+			form.cleaned_data['employee'].delete()
 	return HttpResponseRedirect('/')
 
 def availability(request):
