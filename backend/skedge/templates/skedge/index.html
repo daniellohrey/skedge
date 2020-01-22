@@ -3,17 +3,17 @@
 {% block script %}
 <script>
         $(document).on('click', '.bg-success', function () {
-                $(this).removeClass().addClass('bg-danger').text('Not available');
+                $(this).removeClass().addClass('bg-danger border border-dark').text('Not available');
                 $(this).next().val("N")
         });
 
         $(document).on('click', '.bg-danger', function () {
-                $(this).removeClass().addClass('bg-warning').text('Working');
+                $(this).removeClass().addClass('bg-warning border border-dark').text('Working');
                 $(this).next().val("W")
         });
 
         $(document).on('click', '.bg-warning', function () {
-                $(this).removeClass().addClass('bg-success').text('Available');
+                $(this).removeClass().addClass('bg-success border border-dark').text('Available');
                 $(this).next().val("A")
         });
 
@@ -47,7 +47,7 @@
 {% endfor %}
 </tbody>
 </table>
-<div>
+<div style="float: left;">
 <h5 class="ml">Add new employee</h5>
 <form action="/employee/" method="post">
 	{% csrf_token %}
@@ -57,10 +57,10 @@
 </form>
 </div>
 <div>
-<h5 class="ml">Delete Employee</h5>
+<h5 style="margin-left: 390px;">Delete Employee</h5>
 <form action="/employee/delete/" method="post">
 	{% csrf_token %}
-	<label class="ml" for="{{ dform.employee.id_for_label }}">Employee:&nbsp;</label>
+	<label style="margin-left: 30px;" for="{{ dform.employee.id_for_label }}">Employee:&nbsp;</label>
 	{{ dform.employee }}
 	<input class="ll" type="submit" value="Delete">
 </form>

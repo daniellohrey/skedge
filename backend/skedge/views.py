@@ -27,6 +27,7 @@ def index(request):
 	data['dform'] = DeleteEmployeeForm()
 	return render(request, 'skedge/index.html', data)
 
+@login_required
 def employee(request):
 	if request.method == 'POST':
 		form = EmployeeForm(request.POST)
@@ -38,6 +39,7 @@ def employee(request):
 			s.save()
 	return HttpResponseRedirect('/')
 
+@login_required
 def delete_employee(request):
 	if request.method == 'POST':
 		form = DeleteEmployeeForm(request.POST)
@@ -45,6 +47,7 @@ def delete_employee(request):
 			form.cleaned_data['employee'].delete()
 	return HttpResponseRedirect('/')
 
+@login_required
 def availability(request):
 	if request.method == 'POST':
 		a = Availability.objects.get(employee=request.POST['employee'])
@@ -53,24 +56,26 @@ def availability(request):
 			form.save()
 	return HttpResponse('OK', status=200)
 
+@login_required
 def schedule(request):
 	if request.method == 'POST':
 		s = Schedule.objects.get(employee=request.POST['employee'])
 		form = ScheduleForm(request.POST, instance=s)
 		if form.is_valid():
 			form.save()
-		return HttpResponseRedirect('/schedule/')
+		return HttpResponse('OK', status=200)
 	data = {}
 	schedule_forms = []
 	for employee in Employee.objects.all():
 		form = ScheduleForm(instance=employee.schedule)
-		schedule_forms.append(form)
+		schedule_forms.append((employee, form))
 	data['forms'] = schedule_forms
 	headers = ["Shift", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 	data['days'] = headers
 	return render(request, 'skedge/schedule.html', data)
 
 av = "B"
+@login_required
 def generate_schedule(request):
 	global av
 	if request.method == 'POST':

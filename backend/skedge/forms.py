@@ -2,17 +2,21 @@ from django.forms import ModelForm, Form, HiddenInput, ChoiceField, ModelChoiceF
 from .models import Employee, Schedule, Availability, Schedule_Parameters
 
 class ScheduleForm(ModelForm):
+	choices = [
+                ('N', 'Not Working'),
+                ('W', 'Working')
+        ]
 	for s in range(4):
 		for d in range(5):
-			key = "a" + str(d) + "_" + str(s)
-			exec(key + " = ChoiceField(widget=HiddenInput)")
+			key = "w" + str(d) + "_" + str(s)
+			exec(key + " = ChoiceField(widget=HiddenInput, choices=choices)")
 
 	class Meta:
 		model = Schedule
-		fields = []
+		fields = ['employee']
 		for s in range(4):
 			for d in range(5):
-				key = "a" + str(d) + "_" + str(s)
+				key = "w" + str(d) + "_" + str(s)
 				exec("fields.append('" + key + "')")
 
 class AvailabilityForm(ModelForm):

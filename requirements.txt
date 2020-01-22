@@ -1,5 +1,6 @@
 asgiref==3.2.3
 Django==3.0.2
+django-widget-tweaks==1.4.5
 ortools==7.4.7247
 protobuf==3.11.2
 pylzma==0.5.0

@@ -1,7 +1,7 @@
 <tr>
 {% for field in form.hidden_fields %}
 	{% if forloop.counter == 1 %}
-		<td height=38 class="border border-dark">&nbsp;&nbsp;{{ employee.name }} {{ form.employee.as_hidden }}</td><td class="border border-dark">&nbsp;&nbsp;Morning</td>
+		<td style="padding: 8px;" height=38 class="border border-dark"><b>&nbsp;&nbsp;{{ employee.name }} </b> {{ form.employee.as_hidden }}</td><td class="border border-dark">&nbsp;&nbsp;Morning</td>
 	{% elif forloop.counter == 6 %}
 		<td height=38 class="border border-dark">{{ form.weekly_ideal }}</td><td class="border border-dark">&nbsp;&nbsp;2:00 - 2:30</td>
 	{% elif forloop.counter == 11 %}
@@ -12,7 +12,11 @@
 	{% if field.value == "A" %}
 		<td class="bg-success border border-dark">Available</td>
 	{% elif field.value == "N" %}
-		<td class="bg-danger border border-dark">Not Available</td>
+		{% if form.weekly_ideal %}
+			<td class="bg-danger border border-dark">Not Available</td>
+		{% else %}
+			<td class="bg-danger border border-dark not-working">Not Working</td>
+		{% endif %}
 	{% elif field.value == "W" %}
 		<td class="bg-warning border border-dark">Working</td>
 	{% endif %}

@@ -43,11 +43,19 @@ input[type=number]{
 
 .bg-warning {
   text-align: center;
-  opacity: 0.85;
+  opacity: 0.87;
 }
 
 .bg-warning:hover {
   opacity: 0.99;
+}
+
+.not-working {
+  opacity: 0.65;
+}
+
+.not-working:hover {
+  opacity: 0.9;
 }
 
 .hh {
