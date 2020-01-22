@@ -26,6 +26,10 @@
 {% block content %}
 {% include "skedge/header.html" %}
 <h4 class="hh">Enter Employee Availability</h5>
+{% if error %}
+	<h5 class="hh text-danger">{{ error }}</h5>
+	<br/>
+{% endif %}
 <table class="table table-primary table-striped table-bordered table-hover table-sm">
 <thead>
 	<tr>

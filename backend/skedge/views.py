@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import ScheduleForm, AvailabilityForm, EmployeeForm, Schedule_ParametersForm, DeleteEmployeeForm
 from .models import Employee, Availability, Schedule, Schedule_Parameters
 from ortools.sat.python import cp_model
+import random
 
 @login_required
 def index(request):
@@ -25,6 +26,11 @@ def index(request):
 	data['param_form'] = form
 	data['avail'] = True
 	data['dform'] = DeleteEmployeeForm()
+	try:
+		if request.GET.get('error'):
+			data['error'] = "Couldn't generate a valid timetable. Please try again with different parameters."
+	except IndexError:
+		pass
 	return render(request, 'skedge/index.html', data)
 
 @login_required
@@ -115,6 +121,8 @@ def generate_schedule(request):
 		#create dummy employee to find gaps
 
 		#set availabilites from 2-230
+		working_from_2 = [[], [], [], [], []] #for choosing workers to work from 2
+		available_from_2 = [[], [], [], [], []]
 		from_2 = {}
 		for e in range(num_employees):
 			for d in range(num_days):
@@ -131,8 +139,13 @@ def generate_schedule(request):
 					if av == 'W':
 						#if working set working afternoon
 						model.Add(work[e, d, 1] == 1)
+						working_from_2[d].append(e)
+					else:
+						available_from_2[d].append(e)
 
 		#set availabilites from 530-6, see from_2
+		working_till_6 = [[], [], [], [], []]
+		available_till_6 = [[], [], [], [], []]
 		till_6 = {}
 		for e in range(num_employees):
 			for d in range(num_days):
@@ -146,6 +159,9 @@ def generate_schedule(request):
 					model.Add(till_6[e, d] == 1)
 					if av == 'W':
 						model.Add(work[e, d, 1] == 1)
+						working_till_6[d].append(e)
+					else:
+						available_till_6[d].append(e)
 				
 		#set working/not available shifts
 		for e in range(num_employees):
@@ -245,15 +261,63 @@ def generate_schedule(request):
 						else:
 							exec("w." + key + " = 'N'")
 
-					#set whether working from 2/till 6
+					#set all not working from 2/till 6
 					for s2 in [1, 3]:
 						key = "w" + str(d) + "_" + str(s2)
 						exec("w." + key + " = 'N'")
-					#add actual 2-6 schedule
-
 				w.save()
+
+			random.seed()
+			for d in range(5):
+				for e in working_from_2[d]:
+						w = employee_schedules[e]
+						key = "w" + str(d) + "_1"
+						exec("w." + key + " = 'W'")
+						w.save()
+
+				for e in working_till_6[d]:
+						w = employee_schedules[e]
+						key = "w" + str(d) + "_3"
+						exec("w." + key + " = 'W'")
+						w.save()
+
+				key = "p" + str(d) + "_1"
+				exec("global av; av = params." + key)
+				if len(working_from_2[d]) < av:
+					delta = av - len(working_from_2[d])
+					available = []
+					for e in available_from_2[d]:
+						w = employee_schedules[e]
+						key = "w" + str(d) + "_2"
+						exec("global av; av = w." + key)
+						if av == 'W':
+							available.append(e)
+					working = random.sample(available, delta)
+					for e in working:
+						w = employee_schedules[e]
+						key = "w" + str(d) + "_1"
+						exec("w." + key + " = 'W'")
+						w.save()
+
+				key = "p" + str(d) + "_3"
+				exec("global av; av = params." + key)
+				if len(working_till_6[d]) < av:
+					delta = av - len(working_till_6[d])
+					available = []
+					for e in available_till_6[d]:
+						w = employee_schedules[e]
+						key = "w" + str(d) + "_2"
+						exec("global av; av = w." + key)
+						if av == 'W':
+							available.append(e)
+					working = random.sample(available, delta)
+					for e in working:
+						w = employee_schedules[e]
+						key = "w" + str(d) + "_3"
+						exec("w." + key + " = 'W'")
+						w.save()
 
 			return HttpResponseRedirect('/schedule/')
 
-	return HttpResponseRedirect('/')
+	return HttpResponseRedirect('/?error=1')
 
