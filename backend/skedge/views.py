@@ -3,11 +3,13 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from .forms import ScheduleForm, AvailabilityForm, EmployeeForm, Schedule_ParametersForm, DeleteEmployeeForm
 from .models import Employee, Availability, Schedule, Schedule_Parameters
+from axes.utils import reset
 from ortools.sat.python import cp_model
 import random
 
 @login_required
 def index(request):
+	reset(username=request.user)
 	data = {}
 	employee_forms = []
 	for employee in Employee.objects.all():
@@ -137,9 +139,13 @@ def generate_schedule(request):
 					#if available/working set to available
 					model.Add(from_2[e, d] == 1)
 					if av == 'W':
-						#if working set working afternoon
-						model.Add(work[e, d, 1] == 1)
-						working_from_2[d].append(e)
+						#check if working afternoon
+						key = "a" + str(d) + "_2"
+						exec("global av; av = w." + key)
+						if av != 'N':
+							#if working set working afternoon
+							model.Add(work[e, d, 1] == 1)
+							working_from_2[d].append(e)
 					else:
 						available_from_2[d].append(e)
 
@@ -158,8 +164,11 @@ def generate_schedule(request):
 				else:
 					model.Add(till_6[e, d] == 1)
 					if av == 'W':
-						model.Add(work[e, d, 1] == 1)
-						working_till_6[d].append(e)
+						key = "a" + str(d) + "_2"
+						exec("global av; av = w." + key)
+						if av != 'N':
+								model.Add(work[e, d, 1] == 1)
+								working_till_6[d].append(e)
 					else:
 						available_till_6[d].append(e)
 				
@@ -265,7 +274,7 @@ def generate_schedule(request):
 					for s2 in [1, 3]:
 						key = "w" + str(d) + "_" + str(s2)
 						exec("w." + key + " = 'N'")
-				w.save()
+				#w.save()
 
 			random.seed()
 			for d in range(5):
@@ -273,13 +282,13 @@ def generate_schedule(request):
 						w = employee_schedules[e]
 						key = "w" + str(d) + "_1"
 						exec("w." + key + " = 'W'")
-						w.save()
+						#w.save()
 
 				for e in working_till_6[d]:
 						w = employee_schedules[e]
 						key = "w" + str(d) + "_3"
 						exec("w." + key + " = 'W'")
-						w.save()
+						#w.save()
 
 				key = "p" + str(d) + "_1"
 				exec("global av; av = params." + key)
@@ -297,7 +306,7 @@ def generate_schedule(request):
 						w = employee_schedules[e]
 						key = "w" + str(d) + "_1"
 						exec("w." + key + " = 'W'")
-						w.save()
+						#w.save()
 
 				key = "p" + str(d) + "_3"
 				exec("global av; av = params." + key)
@@ -315,7 +324,10 @@ def generate_schedule(request):
 						w = employee_schedules[e]
 						key = "w" + str(d) + "_3"
 						exec("w." + key + " = 'W'")
-						w.save()
+						#w.save()
+
+			for e in employee_schedules:
+				e.save()
 
 			return HttpResponseRedirect('/schedule/')
 
