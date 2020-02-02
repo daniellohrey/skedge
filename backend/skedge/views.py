@@ -64,6 +64,7 @@ def availability(request):
 			form.save()
 	return HttpResponse('OK', status=200)
 
+wk = "B"
 @login_required
 def schedule(request):
 	if request.method == 'POST':
@@ -74,9 +75,20 @@ def schedule(request):
 		return HttpResponse('OK', status=200)
 	data = {}
 	schedule_forms = []
+	working = {}
 	for employee in Employee.objects.all():
 		form = ScheduleForm(instance=employee.schedule)
 		schedule_forms.append((employee, form))
+		for s in range(4):
+			for d in range(5):
+				key = "w" + str(d) + "_" + str(s)
+				exec("global wk; wk = employee.schedule." + key)
+				if wk == "W":
+					try:
+						working[str(d) + "_" + str(s)].append(employee.name)
+					except:
+						working[str(d) + "_" + str(s)] = [employee.name]
+	data['working'] = working
 	data['forms'] = schedule_forms
 	headers = ["Shift", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 	data['days'] = headers
@@ -117,6 +129,7 @@ def generate():
 	#rather have people work more than ideal than be 1 short
 	COVER_PENALTY = 10
 	WEEKLY_SUM_PENALTY = 1
+	CASUAL_PENALTY = 100
 
 	int_vars = []
 	int_coeffs = []
@@ -240,23 +253,27 @@ def generate():
 		w = employees[e]
 		weekly_sum = model.NewIntVar(0, 10, "weekly_sum%i" % (e))
 		model.Add(sum(work[e, d, s] for d in range(num_days) for s in range(num_shifts)) == weekly_sum)
-		ideal = model.NewIntVar(0, 10, "weekly_ideal%i" % (e))
-		model.Add(ideal == w.weekly_ideal)
-		half_ideal = model.NewIntVar(0, 10, "half_ideal%i" % (e))
-		model.AddDivisionEquality(half_ideal, ideal, 2)
-		ideal_3 = model.NewIntVar(0, 10, "ideal_3_%i" % (e))
-		model.Add(ideal_3 == ideal - 3)
-		min_ideal = model.NewIntVar(0, 10, "min_ideal%i" % (e))
-		model.AddMaxEquality(min_ideal, [half_ideal, ideal_3])
-		model.Add(weekly_sum > min_ideal)
-		#add calculate max_ideal
-		#model.Add(weekly_sum <= max_ideal)
-		delta = model.NewIntVar(-10, 10, "weekly_delta%i" % (e))
-		model.Add(delta == ideal - weekly_sum)
-		delta_penalty = model.NewIntVar(0, 10, 'weekly%i' % (e))
-		model.AddAbsEquality(delta_penalty, delta)
-		int_vars.append(delta_penalty)
-		int_coeffs.append(WEEKLY_SUM_PENALTY)
+		if w.weekly_ideal != 0:
+			ideal = model.NewIntVar(0, 10, "weekly_ideal%i" % (e))
+			model.Add(ideal == w.weekly_ideal)
+			half_ideal = model.NewIntVar(0, 10, "half_ideal%i" % (e))
+			model.AddDivisionEquality(half_ideal, ideal, 2)
+			ideal_3 = model.NewIntVar(0, 10, "ideal_3_%i" % (e))
+			model.Add(ideal_3 == ideal - 3)
+			min_ideal = model.NewIntVar(0, 10, "min_ideal%i" % (e))
+			model.AddMaxEquality(min_ideal, [half_ideal, ideal_3])
+			model.Add(weekly_sum > min_ideal)
+			#add calculate max_ideal
+			#model.Add(weekly_sum <= max_ideal)
+			delta = model.NewIntVar(-10, 10, "weekly_delta%i" % (e))
+			model.Add(delta == ideal - weekly_sum)
+			delta_penalty = model.NewIntVar(0, 10, 'weekly%i' % (e))
+			model.AddAbsEquality(delta_penalty, delta)
+			int_vars.append(delta_penalty)
+			int_coeffs.append(WEEKLY_SUM_PENALTY)
+		else:
+			int_vars.append(weekly_sum)
+			int_coeffs.append(CASUAL_PENALTY)
 
 	#set objective
 	model.Minimize(sum(int_vars[i] * int_coeffs[i] for i in range(len(int_vars))))

@@ -20,7 +20,7 @@
 
 {% block content %}
 {% include "skedge/header.html" %}
-<h4 class="hh">Schedule</h4>
+<h4 class="hh">Employee Schedules</h4>
 <table class="table table-primary table-striped table-bordered table-hover table-sm">
 <thead>
         <tr>
@@ -42,6 +42,144 @@
 {% endfor %}
 </tbody>
 </table>
+<h4 class="hh">Shift Cover</h4>
+<table class="table ll table-primary table-bordered table-hover table-striped table-sm">
+<thead>
+        <tr>
+                <th height=30 class="border border-dark">Shift</th>
+                <th class="border border-dark">Monday</th>
+                <th class="border border-dark">Tuesday</th>
+                <th class="border border-dark">Wednesday</th>
+                <th class="border border-dark">Thursday</th>
+                <th class="border border-dark">Friday</th>
+        </tr>
+</thead>
+</tbody>
+	<tr>
+		<td class="border border-dark">Morning</td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.0_0 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+			<li style="float:right">Total: {{ working.0_0|length }}&nbsp;&nbsp;&nbsp;</li>
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.1_0 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+			<li style="float:right">Total: {{ working.1_0|length }}&nbsp;&nbsp;&nbsp;</li>
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.2_0 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+			<li style="float:right">Total: {{ working.2_0|length }}&nbsp;&nbsp;&nbsp;</li>
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.3_0 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+			<li style="float:right">Total: {{ working.3_0|length }}&nbsp;&nbsp;&nbsp;</li>
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.4_0 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+			<li style="float:right">Total: {{ working.4_0|length }}&nbsp;&nbsp;&nbsp;</li>
+		</ul></td>
+	</tr>
+	<tr>
+		<td class="border border-dark">2:00 - 2:30</td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.0_1 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.1_1 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.2_1 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.3_1 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.4_1 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+		</ul></td>
+	</tr>
+	<tr>
+		<td class="border border-dark">Afternoon</td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.0_2 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+			<li style="float:right">Total: {{ working.0_2|length }}&nbsp;&nbsp;&nbsp;</li>
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.1_2 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+			<li style="float:right">Total: {{ working.1_2|length }}&nbsp;&nbsp;&nbsp;</li>
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.2_2 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+			<li style="float:right">Total: {{ working.2_2|length }}&nbsp;&nbsp;&nbsp;</li>
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.3_2 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+			<li style="float:right">Total: {{ working.3_2|length }}&nbsp;&nbsp;&nbsp;</li>
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.4_2 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+			<li style="float:right">Total: {{ working.4_2|length }}&nbsp;&nbsp;&nbsp;</li>
+		</ul></td>
+	</tr>
+	<tr>
+		<td class="border border-dark">5:30 - 6:00</td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.0_3 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.1_3 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.2_3 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.3_3 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+		</ul></td>
+		<td class="border border-dark"><ul style="list-style-type:none;">
+			{% for name in working.4_3 %}
+				<li>{{ name }}</li>
+			{% endfor %}
+		</ul></td>
+	</tr>
+</tbody>
+</table>
+<a href="/schedule"><button class="button right btn btn-primary" style="postion:absolute; right:50px;">Reload</button></a>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 {% endblock %}
