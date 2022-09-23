@@ -5,7 +5,7 @@ django-axes==5.2.2
 django-ipware==2.1.0
 django-widget-tweaks==1.4.5
 ortools==7.4.7247
-protobuf==3.11.2
+protobuf==3.18.3
 pylzma==0.5.0
 pytz==2019.3
 six==1.13.0
